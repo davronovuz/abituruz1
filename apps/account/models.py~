@@ -44,7 +44,7 @@ class UserConfirmation(BaseModel):
     code = models.CharField(max_length=6)
     auth_status = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
-    expires_time = models.DateTimeField(null=True, blank=True, minutes=5)
+    expires_time = models.DateTimeField(null=True, blank=True)
     attempts = models.PositiveIntegerField(default=0)
 
     def __str__(self):
