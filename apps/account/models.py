@@ -1,53 +1,54 @@
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator, FileExtensionValidator
 from django.db import models
-from apps.utility.models import Base
+from apps.utility.models import BaseModel
+from django.contrib.auth.models import AbstractUser
 
-#CONSTANT FIELDS
-NEW,CODE,VERIFIED,DONE='new','code','verified','done'
-STUDENT,TEACHER,ADMIN,SUPERADMIN='student','teacher','admin','superadmin'
+# CONSTANTS_FIELDS
+NEW, CODE_VERIFIED, DONE = "new", "code_verified", "done"
+STUDENT, TEACHER, ADMIN, SUPER_ADMIN = "student", "teacher", "admin", "super_admin"
 
 
-class User(Base,AbstractUser):
-    full_name = models.CharField(max_length=250,null=False,blank=False)
-    password = models.CharField(max_length=50)
-    email=models.CharField(max_length=50)
-    phone_regex=RegexValidator(
-        phone_regex=r'^\+?1?\d{9,15}$',
-        message="Telefon raqam +998(91)123-45-67 formatida bo'lishi kerak")
-    phone=models.CharField(validators=[phone_regex], max_length=17, blank=True)
-    avatar=models.ImageField(
-        upload_to='avatars/',
+
+
+class Account(BaseModel, AbstractUser):
+
+    full_name = models.CharField(max_length=255, null=False, blank=False)
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+                                 message="Telefon raqam quyidagi tartibda yozilishi kerak: +998901234567")
+    phone_number = models.CharField(validators=[phone_regex], max_length=17, null=False, blank=False)
+    date_of_birth = models.DateField(null=False, blank=False)
+    avatar = models.ImageField(
+        upload_to="avatars/",
         null=True,
         blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])])
-    date_of_birth=models.DateTimeField(null=True,blank=True)
-
-    USER_ROLES=(
-        (STUDENT,STUDENT),
-        (TEACHER,TEACHER),
-        (ADMIN,ADMIN),
-        (SUPERADMIN,SUPERADMIN),
+        validators=[
+            FileExtensionValidator(allowed_extensions=["jpg", "png", "jpeg", "webp", "gif", "jfif"])
+        ]
     )
-    user_role=models.CharField(max_length=20,choices=USER_ROLES,default=STUDENT)
+
+    USER_ROLE_CHOICES = (
+        (STUDENT, "STUDENT"),
+        (TEACHER, "TEACHER"),
+        (ADMIN, "ADMIN"),
+        (SUPER_ADMIN, "SUPER_ADMIN"),
+    )
+
+    user_role = models.CharField(max_length=30, choices=USER_ROLE_CHOICES, default=STUDENT)
 
     def __str__(self):
         return self.full_name
 
     class Meta:
-        db_table='users'
-        verbose_name='user'
-        verbose_name_plural='users'
-        ordering=['created_at']
+        db_table = "account"
+        verbose_name = "Foydalanuvchi"
+        verbose_name_plural = "Foydalanuvchilar"
+        ordering = ["-created_at"]
 
-class Confirmation(Base):
+
+class UserConfirmation(BaseModel):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     code = models.CharField(max_length=6, null=False, blank=False)
     auth_status = models.CharField(max_length=20, null=False, blank=False, default=NEW)
     is_confirmed = models.BooleanField(default=False)
     expired_time = models.DateTimeField(null=False, blank=False)
     attempts = models.IntegerField(null=False, blank=False, default=0)
-
-
-
-
