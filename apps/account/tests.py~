@@ -1,0 +1,71 @@
+from datetime import timedelta, timezone
+
+from django.test import TestCase
+from .models import Account, UserConfirmation, EXPIRATION_TIME
+
+
+class AccountTestCase(TestCase):
+    def setUp(self):
+        self.user = Account.objects.create_user(
+            full_name="Test User",
+            phone_number="+998901234567",
+            date_of_birth="2000-01-01",
+            password="password",
+            user_role="student",
+            is_active=True
+        )
+
+    def test_accaunt(self):
+        self.assertEqual(self.user.full_name, "Test User")
+        self.assertEqual(self.user.phone_number, "+998901234567")
+        self.assertEqual(self.user.date_of_birth, "2000-01-01")
+        self.assertEqual(self.user.user_role, "student")
+        self.assertEqual(self.user.is_active, True)
+        self.assertEqual(self.user.is_superuser, False)
+        self.assertEqual(self.user.is_staff, False)
+
+    def test_user_confirmation(self):
+        user = Account.objects.get(phone_number="+998901234567")
+        confirmation = UserConfirmation.objects.create(user=user)
+        self.assertEqual(confirmation.user, user)
+        self.assertEqual(confirmation.code, None)
+        self.assertEqual(confirmation.auth_status, "NEW")
+        self.assertEqual(confirmation.is_confirmed, False)
+        self.assertEqual(confirmation.expired_time, None)
+        self.assertEqual(confirmation.attempts, 0)
+
+        confirmation.save()
+        self.assertEqual(confirmation.user, user)
+        self.assertEqual(confirmation.code, None)
+        self.assertEqual(confirmation.auth_status, "NEW")
+        self.assertEqual(confirmation.is_confirmed, False)
+        self.assertEqual(confirmation.expired_time, timezone.now() + timedelta(minutes=EXPIRATION_TIME))
+        self.assertEqual(confirmation.attempts, 0)
+
+class UserConfirmationTestCase(TestCase):
+    def setUp(self):
+        self.user = Account.objects.create_user(
+            full_name="Test User",
+            phone_number="+998901234567",
+            date_of_birth="2000-01-01",
+            password="password",
+            user_role="student",
+            is_active=True
+        )
+    def test_user_confirmation(self):
+        user = Account.objects.get(phone_number="+998901234567")
+        confirmation = UserConfirmation.objects.create(user=user)
+        self.assertEqual(confirmation.user, user)
+        self.assertEqual(confirmation.code, None)
+        self.assertEqual(confirmation.auth_status, "NEW")
+        self.assertEqual(confirmation.is_confirmed, False)
+        self.assertEqual(confirmation.expired_time, None)
+        self.assertEqual(confirmation.attempts, 0)
+
+        confirmation.save()
+        self.assertEqual(confirmation.user, user)
+        self.assertEqual(confirmation.code, None)
+        self.assertEqual(confirmation.auth_status, "NEW")
+        self.assertEqual(confirmation.is_confirmed, False)
+        self.assertEqual(confirmation.expired_time, timezone.now() + timedelta(minutes=EXPIRATION_TIME))
+        self.assertEqual(confirmation.attempts, 0)
